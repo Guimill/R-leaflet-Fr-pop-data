@@ -33,7 +33,8 @@ ui <- bootstrapPage(
 server <- function(input, output, session) {
   
   filteredData <- reactive({
-    result_map %>% select(nom.x, geometry, input$ageClass)
+    InputChoice <- str(input$ageClass)
+    result_map %>% select(nom.x, geometry, InputChoice[1])
   })
   
   colorpal <- reactive({
