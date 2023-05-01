@@ -33,17 +33,19 @@ ui <- bootstrapPage(
 server <- function(input, output, session) {
   
   filteredData <- reactive({
-    InputChoice <- str(input$ageClass)
-    result_map %>% select(nom.x, geometry, InputChoice[1])
+    choice <- input$ageClass
+    result_map[,c("nom.x", "geometry", choice[1]), drop = FALSE]
   })
   
   colorpal <- reactive({
-    colorNumeric(input$ageClass, result_map$`0-19`)
+    colorBin("Blues" , domain = input$ageClass, bins = 7)
   })
 
-  InputLabels <- reactive({sprintf(
+  InputLabels <- reactive({
+    choice <- input$ageClass
+    sprintf(
     "<strong>%s</strong><br/>%s population",
-    result_map$nom.x, input$ageClass
+    result_map$nom.x, result_map$choice[1]
   ) %>% lapply(htmltools::HTML)})
   
   output$map <- renderLeaflet({
@@ -55,15 +57,12 @@ server <- function(input, output, session) {
   observe({
     pal <- colorpal()
     labels <- InputLabels()
+    mapFilteredData <- filteredData()
     
-    leafletProxy("map", data = filteredData() %>%
+    leafletProxy("map") %>%
       clearShapes() %>%
-        addLegend(pal = pal,
-                  values = ~sexRationFH,
-                  opacity = 0.7,
-                  title = NULL,
-                  position = "bottomright") %>%
-        addPolygons(fillColor = ~pal(),
+        addPolygons(data = mapFilteredData,
+                    fillColor = ~pal,
                     color = "white",
                     weight = 1,
                     smoothFactor = 0.5,
@@ -79,7 +78,6 @@ server <- function(input, output, session) {
                       style = list("font-weight" = "normal", padding = "3px 8px"),
                       textsize = "15px",
                       direction = "auto"))
-    )
   })
   
     }
