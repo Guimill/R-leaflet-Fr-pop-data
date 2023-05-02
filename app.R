@@ -16,20 +16,18 @@ library(maptools)
 library(viridis)
 library(DT)
 
-setwd("C:/Users/guill/Documents/GitHub/R-leaflet-Fr-pop-data")
-
-rhone <- st_read("data/departement-69/admin-departement.shp")
-shp <- st_read("data/departements-20180101.shp")
 pop <- read_csv("data/pop.csv")
 pop <- pop[-c(9:20)]
-shp <- shp[-c(66,22,80,1,94,65),]
-shp$code_insee[shp$code_insee == '69D'] <- '69'
-result_map <- left_join(shp, pop, by ='code_insee')
-result_map <- st_join(result_map, rhone, by="code_insee")
-attr(shp, "sf_column")
-ChoicesData <- result_map[-c(1,2,3,4,5,6,25)]
-InputChoices <- colnames(ChoicesData)
 
+shp <- st_read("data/georef-france-departement-millesime.shp")
+shp$dep_code <- substr(shp$dep_code,3,4)
+shp <- shp[-c(15,19,27,91,70),]
+colnames(shp)[4] <- "code_insee"
+
+result_map <- left_join(shp, pop, by ='code_insee')
+result_map <- result_map[-c(1:7,9:14)]
+colnames(result_map)[1] <- "nom"
+attr(shp, "sf_column")
 
 
 # Define UI for application that draws a histogram
@@ -63,7 +61,7 @@ ui <- bootstrapPage(
 server <- function(input, output, session) {
   
   filteredData <- reactive({
-    result_map[,c("nom.x", "geometry", input$ageClass), drop = FALSE]
+    result_map[,c("nom", "geometry", input$ageClass), drop = FALSE]
   })
   
   colorpal <- reactive({
@@ -77,7 +75,7 @@ server <- function(input, output, session) {
     a <- input$ageClass
     sprintf(
     "<strong>%s</strong><br/>%s Personnes",
-    result_map$nom.x, res[,a]
+    result_map$nom, res[,a]
     ) %>% lapply(htmltools::HTML)
   })
   
