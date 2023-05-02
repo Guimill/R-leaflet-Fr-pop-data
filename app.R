@@ -80,8 +80,9 @@ server <- function(input, output, session) {
   })
   
   output$map <- renderLeaflet({
-    leaflet(result_map) %>% addTiles() %>%
-      setView(lng = 2.6, lat = 46.830475, zoom = 6)
+    leaflet(result_map) %>%
+      addProviderTiles(providers$CartoDB.VoyagerNoLabels) %>%
+      setView(lng = 2.6, lat = 46.830475, zoom = 5)
   })
   
   observe({
