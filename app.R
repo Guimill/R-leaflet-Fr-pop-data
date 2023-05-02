@@ -18,18 +18,18 @@ library(DT)
 
 setwd("C:/Users/guill/Documents/GitHub/R-leaflet-Fr-pop-data")
 
-shp <- st_read("departements-20180101.shp")
-pop <- read_csv("pop.csv")
+rhone <- st_read("data/departement-69/admin-departement.shp")
+shp <- st_read("data/departements-20180101.shp")
+pop <- read_csv("data/pop.csv")
 pop <- pop[-c(9:20)]
 shp <- shp[-c(66,22,80,1,94,65),]
 shp$code_insee[shp$code_insee == '69D'] <- '69'
 result_map <- left_join(shp, pop, by ='code_insee')
+result_map <- st_join(result_map, rhone, by="code_insee")
 attr(shp, "sf_column")
 ChoicesData <- result_map[-c(1,2,3,4,5,6,25)]
 InputChoices <- colnames(ChoicesData)
 
-a <- result_map %>% select(un)
-a
 
 
 # Define UI for application that draws a histogram
