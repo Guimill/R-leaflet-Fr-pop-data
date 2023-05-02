@@ -34,9 +34,21 @@ a
 
 # Define UI for application that draws a histogram
 ui <- bootstrapPage(
-  tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
+  tags$style(HTML(
+    "html, body {width:100%;height:100%;z-index:auto}
+    #controls{
+            background-color: rgba(255,255,255,0.8);
+            color:#555555;
+            border-radius: 10px;
+            padding: 5px 5px 0 5px;
+            z-index = 2;
+            box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+            font-size: large;
+            
+    }"
+  )),
   leafletOutput("map", width = "100%", height = "100%"),
-  absolutePanel(top = 10, right = 10,
+  absolutePanel(id = "controls" ,top = 10, right = 10,
   selectInput("ageClass", "Classe d'âge :", choices = c(
                                                           "Zero_dix-neuf" = "un",
                                                           "vingt_trente-neuf" = "deux",
@@ -64,7 +76,7 @@ server <- function(input, output, session) {
     res <- st_drop_geometry(result_map)
     a <- input$ageClass
     sprintf(
-    "<strong>%s</strong><br/>%s population",
+    "<strong>%s</strong><br/>%s Personnes",
     result_map$nom.x, res[,a]
     ) %>% lapply(htmltools::HTML)
   })
