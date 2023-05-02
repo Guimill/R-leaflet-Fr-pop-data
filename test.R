@@ -39,7 +39,7 @@ server <- function(input, output) {
     req(input$class)
     pal = colorFactor(input$class, domain = factor(result_map$nom.x))
     leafletProxy("map") %>%
-      addPolygons(data = result_map, color = ~pal(factor(result_map$nom.x)))
+      addPolygons(data = result_map, color = ~pal(input$class))
   })
 }
 

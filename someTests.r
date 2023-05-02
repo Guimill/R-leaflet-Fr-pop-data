@@ -22,7 +22,7 @@ pop$region <- stri_trans_general(pop$region, "Latin-ASCII") %>%
 view(pop)
 result_map <- left_join(x = data[,-6], y = pop)
 
-mean((pop$TotalF/pop$Total)*100)
+mean((pop$TotalF/pop$total)*100)
 mean((pop$x75F/pop$x75)*100)
 mean((pop$`x60-74F`/pop$`x60-74`))
 mean((pop$`x20-39F`/pop$`x20-39`))
@@ -84,8 +84,8 @@ ui <- bootstrapPage(
   tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
   leafletOutput("map", width = "100%", height = "100%"),
   absolutePanel(top = 10, right = 10,
-                sliderInput("range", "POP", min(a$Total), max(a$Total),
-                            value = range(a$Total), step = 100000
+                sliderInput("range", "POP", min(a$total), max(a$total),
+                            value = range(a$total), step = 100000
                 ),
                 selectInput("colors", "Color Scheme",
                             rownames(subset(brewer.pal.info, category %in% c("seq", "div")))
@@ -97,7 +97,7 @@ ui <- bootstrapPage(
 server <- function(input, output, session) {
   
   filteredData <- reactive({
-    a[a$Total >= input$range[1] & a$Total <= input$range[2],]
+    a[a$total >= input$range[1] & a$total <= input$range[2],]
   })
   output$map = renderLeaflet({
     leaflet(a) %>%
@@ -106,7 +106,7 @@ server <- function(input, output, session) {
   })
   
   colorpal <- reactive({
-    colorNumeric(input$colors, a$Total)
+    colorNumeric(input$colors, a$total)
   })
   
   observe({
@@ -115,7 +115,7 @@ server <- function(input, output, session) {
       addPolygons(data = filteredData()$geometry,
                   weight = 1, color = "#777777",
                   fillColor = ~colorQuantile("YlOrRd", ALAND)(ALAND),
-                  fillOpacity = 0.7, popup = ~paste(Total),
+                  fillOpacity = 0.7, popup = ~paste(total),
                   highlightOptions = highlightOptions(color = "white",
                                                       weight = 2,
                                                       bringToFront = TRUE)

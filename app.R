@@ -11,76 +11,101 @@ library(RColorBrewer)
 library(rgdal)
 library(magrittr)
 library(devtools)
+library(rgeos)
+library(maptools)
+library(viridis)
+library(DT)
+
+setwd("C:/Users/guill/Documents/GitHub/R-leaflet-Fr-pop-data")
 
 shp <- st_read("departements-20180101.shp")
 pop <- read_csv("pop.csv")
+pop <- pop[-c(9:20)]
 shp <- shp[-c(66,22,80,1,94,65),]
 shp$code_insee[shp$code_insee == '69D'] <- '69'
 result_map <- left_join(shp, pop, by ='code_insee')
 attr(shp, "sf_column")
-InputChoices <- colnames(result_map)
-InputChoices <- InputChoices[-c(1,2,3,4,5,6,25)]
+ChoicesData <- result_map[-c(1,2,3,4,5,6,25)]
+InputChoices <- colnames(ChoicesData)
+
+a <- result_map %>% select(un)
+a
+
 
 # Define UI for application that draws a histogram
 ui <- bootstrapPage(
   tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
   leafletOutput("map", width = "100%", height = "100%"),
   absolutePanel(top = 10, right = 10,
-  selectInput("ageClass", "Classe d'âge", choices = InputChoices))
-)
+  selectInput("ageClass", "Classe d'âge :", choices = c(
+                                                          "Zero_dix-neuf" = "un",
+                                                          "vingt_trente-neuf" = "deux",
+                                                          "quarante_cinquante-neuf" = "trois",
+                                                          "soixante_soixante-quatorze" = "quatre",
+                                                          "soixante-quinze&plus" = "cinq",
+                                                          "Total" = "total"
+                                                          ))
+))
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
   
   filteredData <- reactive({
-    choice <- input$ageClass
-    result_map[,c("nom.x", "geometry", choice[1]), drop = FALSE]
+    result_map[,c("nom.x", "geometry", input$ageClass), drop = FALSE]
   })
   
   colorpal <- reactive({
-    colorBin("Blues" , domain = input$ageClass, bins = 7)
+    res <- st_drop_geometry(result_map)
+    a <- input$ageClass
+    colorBin(rocket(10) , domain = res[,a])
   })
 
   InputLabels <- reactive({
-    choice <- input$ageClass
+    res <- st_drop_geometry(result_map)
+    a <- input$ageClass
     sprintf(
     "<strong>%s</strong><br/>%s population",
-    result_map$nom.x, result_map$choice[1]
-  ) %>% lapply(htmltools::HTML)})
+    result_map$nom.x, res[,a]
+    ) %>% lapply(htmltools::HTML)
+  })
   
   output$map <- renderLeaflet({
     leaflet(result_map) %>% addTiles() %>%
-      addProviderTiles("Stamen.Watercolor") %>%
       setView(lng = 2.6, lat = 46.830475, zoom = 6)
   })
   
   observe({
     pal <- colorpal()
+    finalFilteredData <- filteredData()
     labels <- InputLabels()
-    mapFilteredData <- filteredData()
+    res <- st_drop_geometry(result_map)
+    a <- input$ageClass
     
-    leafletProxy("map") %>%
+    leafletProxy("map", data = result_map) %>%
       clearShapes() %>%
-        addPolygons(data = mapFilteredData,
-                    fillColor = ~pal,
+      clearControls() %>%
+      addPolygons(data = finalFilteredData,
+                  fillColor = ~pal(res[,a]),
+                  color = "white",
+                  weight = 1,
+                  smoothFactor = 0.5,
+                  opacity = 1.0,
+                  fillOpacity = 0.5,
+                  highlightOptions = highlightOptions(
                     color = "white",
-                    weight = 1,
-                    smoothFactor = 0.5,
-                    opacity = 1.0,
-                    fillOpacity = 0.5,
-                    highlightOptions = highlightOptions(
-                      color = "white",
-                      weight = 2,
-                      bringToFront = TRUE
-                    ),
-                    label = labels,
-                    labelOptions = labelOptions(
-                      style = list("font-weight" = "normal", padding = "3px 8px"),
-                      textsize = "15px",
-                      direction = "auto"))
+                    weight = 2,
+                    bringToFront = TRUE
+                  ),
+                  label = labels) %>%
+                  addLegend("bottomright", pal = pal, values = ~res[,a],
+                            title = "Population :",
+                            opacity = 1
+                  )
   })
   
+
     }
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
