@@ -83,7 +83,10 @@ ui <- bootstrapPage(
   )),
   leafletOutput("map", width = "100%", height = "100%"),
   absolutePanel(id = "controls" ,top = 10, right = 10,
-                helpText(id = "tittle", "Répartition de la population en France métropolitaine, sex ratio et population active par département"),
+                helpText(id = "tittle",
+                "    Répartition de la population
+    en France métropolitaine,
+    sex ratio et population active par département"),
                 hr(),
                 selectInput("ageClass", "Données :", choices = c(
                                                                         "Population de 0 à 19 ans" = "un",
