@@ -14,7 +14,7 @@ library(devtools)
 library(rgeos)
 library(maptools)
 library(viridis)
-library(DT)
+library(MASS)
 
 pop <- read_csv("data/pop.csv")
 
@@ -116,16 +116,16 @@ server <- function(input, output, session) {
   
   colorpal <- reactive({
     res <- st_drop_geometry(result_map)
-    a <- input$ageClass
-    colorBin("plasma" , domain = res[,a])
+    ageC <- input$ageClass
+    colorBin("plasma" , domain = res[,ageC])
   })
 
   InputLabels <- reactive({
     res <- st_drop_geometry(result_map)
-    a <- input$ageClass
+    ageC <- input$ageClass
     sprintf(
     "<strong>%s</strong><br/>%s",
-    result_map$nom, res[,a]
+    result_map$nom, res[,ageC]
     ) %>% lapply(htmltools::HTML)
   })
   
@@ -140,14 +140,14 @@ server <- function(input, output, session) {
     finalFilteredData <- filteredData()
     labels <- InputLabels()
     res <- st_drop_geometry(result_map)
-    a <- input$ageClass
+    ageC <- input$ageClass
     
     
     leafletProxy("map", data = result_map) %>%
       clearShapes() %>%
       clearControls() %>%
       addPolygons(data = finalFilteredData,
-                  fillColor = ~pal(res[,a]),
+                  fillColor = ~pal(res[,ageC]),
                   color = "white",
                   weight = 1,
                   smoothFactor = 0.5,
@@ -159,8 +159,8 @@ server <- function(input, output, session) {
                     bringToFront = TRUE
                   ),
                   label = labels) %>%
-                  addLegend("bottomright", pal = pal, values = ~res[,a],
-                            title = choice[1,a],
+                  addLegend("bottomright", pal = pal, values = ~res[,ageC],
+                            title = choice[1,ageC],
                             opacity = 1
                   )
   })
